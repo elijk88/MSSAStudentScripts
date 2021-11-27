@@ -22,7 +22,9 @@ while ($continue) {
     Write-Host "                                  "
     Write-Host "7. Disable accounts without logins >90 days "
     Write-Host "                                             "  
-    Write-Host "8. Create a new AD user account              "
+    Write-Host "8. Add New Organizational Unit OU            "
+    Write-Host "                                             "
+    Write-Host "9. Create a new AD user account              "
     Write-Host "                                             "
     Write-Host "X. Exit this menu                            "
     Write-Host "                                             "
@@ -96,7 +98,26 @@ while ($continue) {
         "7" {
 	Search-ADAccount -AccountInactive -TimeSpan 90.00:00:00 | ?{$_.enabled -eq $true} |  Disable-ADAccount
         }
-	"8" { 
+	"8" {
+    		function CreateOU {
+    		Param([string]$Name)}
+   			$name = Read-host “enter OU Name”
+    			#Format variables into valid Distinguished Name.
+    			$DistinguishedName = "OU=$Name,dc=adatum,dc=com"
+   			#Check to see if OU already exists.
+			
+    			try {
+   	 			Get-ADOrganizationalUnit -Identity $DistinguishedName | Out-Null
+    				Write-Host "CreateOU - OU Already Existed: $DistinguishedName"
+    				}
+    			#Create OU if does not exist
+    			catch [Microsoft.ActiveDirectory.Management.ADIdentityNotFoundException] {
+    				Write-Host "CreateOU - Creating new OU: $DistinguishedName"
+    				New-ADOrganizationalUnit -Name $Name -Path "dc=adatum,dc=com"
+    				Write-Host "CreateOU - OU Created: $DistinguishedName"
+    				} 
+    		}       
+	"9" { 
 		#Request users first name        
 		$userF = Read-Host "Enter the user First name please"
 
