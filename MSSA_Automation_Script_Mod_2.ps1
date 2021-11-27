@@ -6,7 +6,7 @@ while ($continue) {
     Write-Host "     Microsoft Software and Systems Academy Carpe-Schema Menu        "
     Write-Host "====================================================================="
     Write-Host "                          By N8ZGR8                                "
-	Write-Host "====================================================================="
+    Write-Host "====================================================================="
     Write-Host "                                  "
     Write-Host "1. Disable an AD user account    "
     Write-Host "                                  "
@@ -21,11 +21,11 @@ while ($continue) {
     Write-Host "6. Identify accounts without logins >90 days "
     Write-Host "                                  "
     Write-Host "7. Disable accounts without logins >90 days "
-    Write-Host "                                  "  
-	Write-Host "8. Create a new AD user account   "
-	Write-Host "                                  "
-    Write-Host "X. Exit this menu                 "
-    Write-Host "                                  "
+    Write-Host "                                             "  
+    Write-Host "8. Create a new AD user account              "
+    Write-Host "                                             "
+    Write-Host "X. Exit this menu                            "
+    Write-Host "                                             "
     $choice = Read-Host  "Enter selection"
     switch ($choice) {
         "1" {
@@ -96,41 +96,39 @@ while ($continue) {
         "7" {
 	Search-ADAccount -AccountInactive -TimeSpan 90.00:00:00 | ?{$_.enabled -eq $true} |  Disable-ADAccount
         }
-		"8" { 
-			#Request users first name        
-			$userF = Read-Host "Enter the user First name please"
+	"8" { 
+		#Request users first name        
+		$userF = Read-Host "Enter the user First name please"
 
-			#Request users last name
-			$userL = Read-Host "Enter the user Last name please"
+		#Request users last name
+		$userL = Read-Host "Enter the user Last name please"
 	
-			#$OULocation = Get-ADOrganizationalUnit -Filter * | Select-Object Name | Where-Object {$PSItem.Name -ne "Domain Controllers" | ft
+		#Organizational Unit the user will be place in
+		$SelectedOU = Read-Host "Please provide an OU" 
 	
-			#Organizational Unit the user will be place in
-			$SelectedOU = Read-Host "Please provide an OU" 
+		#Combines users first and last name
+		$CN = $userF + " " + $userL
 	
-			#Combines users first and last name
-			$CN = $userF + " " + $userL
+		#Takes the first initial of user first name adds a period and user last name (example: F.Lastname)
+		$SamN = $userF.Substring(0,1)+"."+$userL
 	
-			#Takes the first initial of user first name adds a period and user last name (example: F.Lastname)
-			$SamN = $userF.Substring(0,1)+"."+$userL
+		#Retrieves the current domain name
+		$DomainN = Get-WmiObject -Namespace root\cimv2 -Class Win32_ComputerSystem | Select-Object Domain
 	
-			#Retrieves the current domain name
-			$DomainN = Get-WmiObject -Namespace root\cimv2 -Class Win32_ComputerSystem | Select-Object Domain
+		#Takes the first initial of the user first name and the user last to user principle name (example: F.Lastname@domain.com)
+		$upn = $userF.Substring(0,1)+""+$userL+"@"+$DomainN.Domain
 	
-			#Takes the first initial of the user first name and the user last to user principle name (example: F.Lastname@domain.com)
-			$upn = $userF.Substring(0,1)+""+$userL+"@"+$DomainN.Domain
+		#Default location for user
+		$L1 = "OU="+$SelectedOU+",DC=Adatum,DC=com"
 	
-			#Default location for user
-			$L1 = "OU="+$SelectedOU+",DC=Adatum,DC=com"
-	
-			#Ask user to input a password 
-			$PwReq = Write-Host "Password must meet the following requirement:" -ForegroundColor Yellow
-					 Write-Host "1. password must be at least 8 characters in length" -ForegroundColor Yellow
-					 Write-Host "2. three of the four characters need to be uppercase, lowercase,numbers, or symbols 'n" -ForegroundColor Yellow 
-					 Write-Host "3. Does not contain the user’s username" -ForegroundColor Yellow
-					 Write-Host "                   "
-					 Write-Host "                   "
-					 Read-Host -AsSecureString "Please provide a valid password" 
+		#Ask user to input a password 
+		$PwReq = Write-Host "Password must meet the following requirement:" -ForegroundColor Yellow
+			 Write-Host "1. password must be at least 8 characters in length" -ForegroundColor Yellow
+			 Write-Host "2. three of the four characters need to be uppercase, lowercase,numbers, or symbols 'n" -ForegroundColor Yellow 
+			 Write-Host "3. Does not contain the user’s username" -ForegroundColor Yellow
+			 Write-Host "                   "
+			 Write-Host "                   "
+			 Read-Host -AsSecureString "Please provide a valid password" 
 					 
 			Try {
 			New-ADUser -Name $CN -GivenName $userF -Surname $userL -SamAccountName $SamN -UserPrincipalName $upn -Path $L1 -AccountPassword $PwReq
@@ -138,7 +136,7 @@ while ($continue) {
 			} catch {
 				  Write-Host "The user $CN already exist in '$DomainN.Domain' domain"
 				  }
-				 }              
+		}              
         "X" {
 	            $continue = $false
 	        }
